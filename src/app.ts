@@ -25,10 +25,6 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify, opts) => {
         credentials: true
     });
 
-    fastify.options('*', async (_req, reply) => {
-        reply.code(204).send();
-    });
-
     await fastify.register(servicesPlugin);
     await fastify.register(productSchemaPlugin);
 
