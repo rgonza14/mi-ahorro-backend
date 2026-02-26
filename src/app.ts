@@ -10,7 +10,10 @@ export interface AppOptions
     extends FastifyServerOptions, Partial<AutoloadPluginOptions> {}
 
 const options: AppOptions = {};
-
+const allowedOrigins = (process.env.FRONTEND_URL ?? '')
+    .split(',')
+    .map(x => x.trim())
+    .filter(Boolean);
 const app: FastifyPluginAsync<AppOptions> = async (fastify, opts) => {
     await fastify.register(import('@fastify/rate-limit'), {
         max: 100,
@@ -19,7 +22,12 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify, opts) => {
     });
 
     await fastify.register(cors, {
-        origin: true,
+        origin: (origin, cb) => {
+            if (!origin) return cb(null, true);
+
+            const isAllowed = allowedOrigins.includes(origin);
+            cb(null, isAllowed);
+        },
         methods: ['GET', 'POST', 'OPTIONS'],
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true
