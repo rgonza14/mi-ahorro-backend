@@ -14,10 +14,20 @@ const options: AppOptions = {};
 const app: FastifyPluginAsync<AppOptions> = async (fastify, opts) => {
     await fastify.register(import('@fastify/rate-limit'), {
         max: 100,
-        timeWindow: '1 minute'
+        timeWindow: '1 minute',
+        allowList: req => req.method === 'OPTIONS'
     });
 
-    await fastify.register(cors, { origin: true });
+    await fastify.register(cors, {
+        origin: true,
+        methods: ['GET', 'POST', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true
+    });
+
+    fastify.options('*', async (_req, reply) => {
+        reply.code(204).send();
+    });
 
     await fastify.register(servicesPlugin);
     await fastify.register(productSchemaPlugin);
